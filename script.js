@@ -29,8 +29,26 @@ let rafId = null;
 let isLocked = true;
 let desiredSpeed = 1;
 let desiredPitch = 1;
+let lastSliderChanged = "speed";
 
 const formatMultiplier = (value) => `${Number(value).toFixed(2)}×`;
+
+const setSpeedValue = (value) => {
+  const numeric = Number(value);
+  desiredSpeed = numeric;
+  speedSlider.value = numeric;
+  speedValue.textContent = formatMultiplier(numeric);
+  if (mediaElement) {
+    mediaElement.playbackRate = numeric;
+  }
+};
+
+const setPitchValue = (value) => {
+  const numeric = Number(value);
+  desiredPitch = numeric;
+  pitchSlider.value = numeric;
+  pitchValue.textContent = formatMultiplier(numeric);
+};
 
 const reflectLockState = () => {
   lockBtn.setAttribute("aria-pressed", String(isLocked));
@@ -122,6 +140,12 @@ const updatePitchShift = () => {
   if (!pitchShift) return;
   const ratio = desiredPitch / desiredSpeed;
   pitchShift.pitch = ratioToSemitone(ratio);
+};
+
+const setLinkedValue = (value) => {
+  setSpeedValue(value);
+  setPitchValue(value);
+  updatePitchShift();
 };
 
 const connectAudioGraph = async (element) => {
@@ -251,8 +275,8 @@ const setupMediaElement = async (file) => {
       }
       updateTimeDisplay();
 
-      applySpeed(desiredSpeed, { fromLock: true });
-      applyPitch(desiredPitch, { fromLock: true });
+      handleSpeedInput(desiredSpeed, { fromLock: true });
+      handlePitchInput(desiredPitch, { fromLock: true });
       updatePitchShift();
     },
     { once: true }
@@ -266,27 +290,18 @@ const setupMediaElement = async (file) => {
 
 };
 
-const applySpeed = (value, { fromLock = false } = {}) => {
-  desiredSpeed = Number(value);
-  if (mediaElement) {
-    mediaElement.playbackRate = desiredSpeed;
-  }
-  speedSlider.value = desiredSpeed;
-  speedValue.textContent = formatMultiplier(desiredSpeed);
+const handleSpeedInput = (value, { fromLock = false } = {}) => {
+  setSpeedValue(value);
   if (isLocked && !fromLock) {
-    applyPitch(desiredSpeed, { fromLock: true });
-    return;
+    setPitchValue(value);
   }
   updatePitchShift();
 };
 
-const applyPitch = (value, { fromLock = false } = {}) => {
-  desiredPitch = Number(value);
-  pitchSlider.value = desiredPitch;
-  pitchValue.textContent = formatMultiplier(desiredPitch);
+const handlePitchInput = (value, { fromLock = false } = {}) => {
+  setPitchValue(value);
   if (isLocked && !fromLock) {
-    applySpeed(desiredPitch, { fromLock: true });
-    return;
+    setSpeedValue(value);
   }
   updatePitchShift();
 };
@@ -313,28 +328,32 @@ stopBtn.addEventListener("click", () => {
 });
 
 speedSlider.addEventListener("input", (event) => {
-  applySpeed(event.target.value);
+  lastSliderChanged = "speed";
+  handleSpeedInput(event.target.value);
 });
 
 pitchSlider.addEventListener("input", (event) => {
-  applyPitch(event.target.value);
+  lastSliderChanged = "pitch";
+  handlePitchInput(event.target.value);
 });
 
 speedSlider.addEventListener("dblclick", () => {
-  applySpeed(1);
+  lastSliderChanged = "speed";
+  handleSpeedInput(1);
 });
 
 pitchSlider.addEventListener("dblclick", () => {
-  applyPitch(1);
+  lastSliderChanged = "pitch";
+  handlePitchInput(1);
 });
 
 lockBtn.addEventListener("click", () => {
   isLocked = !isLocked;
   reflectLockState();
   if (isLocked) {
-    const value = Number(speedSlider.value);
-    applyPitch(value, { fromLock: true });
-    applySpeed(value, { fromLock: true });
+    const referenceValue =
+      lastSliderChanged === "pitch" ? desiredPitch : desiredSpeed;
+    setLinkedValue(referenceValue);
   }
 });
 
@@ -489,7 +508,5 @@ dropzone.addEventListener("keydown", (event) => {
   }
 });
 
-applySpeed(1);
-applyPitch(1);
+setLinkedValue(1);
 reflectLockState();
-updatePitchShift();
