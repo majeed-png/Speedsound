@@ -32,6 +32,12 @@ let desiredPitch = 1;
 
 const formatMultiplier = (value) => `${Number(value).toFixed(2)}×`;
 
+const reflectLockState = () => {
+  lockBtn.setAttribute("aria-pressed", String(isLocked));
+  lockBtn.textContent = isLocked ? "🔒" : "🔓";
+  lockBtn.title = isLocked ? "القيم متساوية" : "القيم منفصلة";
+};
+
 const ensureToneReady = async () => {
   await Tone.start();
   const context = Tone.getContext();
@@ -324,9 +330,7 @@ pitchSlider.addEventListener("dblclick", () => {
 
 lockBtn.addEventListener("click", () => {
   isLocked = !isLocked;
-  lockBtn.setAttribute("aria-pressed", String(isLocked));
-  lockBtn.textContent = isLocked ? "🔒" : "🔓";
-  lockBtn.title = isLocked ? "القيم متساوية" : "القيم منفصلة";
+  reflectLockState();
   if (isLocked) {
     const value = Number(speedSlider.value);
     applyPitch(value, { fromLock: true });
@@ -435,16 +439,18 @@ const handleFiles = (files) => {
   setupMediaElement(file);
 };
 
-fileInput.addEventListener("change", (event) => {
-  handleFiles(event.target.files);
-});
+if (fileInput) {
+  fileInput.addEventListener("change", (event) => {
+    handleFiles(event.target.files);
+  });
+}
 
 const preventDefaults = (event) => {
   event.preventDefault();
   event.stopPropagation();
 };
 
-const dropTargets = [dropzone, fileInput].filter(Boolean);
+const dropTargets = [dropzone].filter(Boolean);
 
 dropTargets.forEach((target) => {
   ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
@@ -468,28 +474,22 @@ dropzone.addEventListener("drop", (event) => {
   handleFiles(event.dataTransfer.files);
 });
 
-if (fileInput) {
-  fileInput.addEventListener("dragenter", () => {
-    dropzone.classList.add("uploader__dropzone--dragging");
-  });
-
-  fileInput.addEventListener("dragleave", (event) => {
-    const next = event.relatedTarget;
-    if (!next || !dropzone.contains(next)) {
-      dropzone.classList.remove("uploader__dropzone--dragging");
-    }
-  });
-
-  fileInput.addEventListener("drop", (event) => {
-    dropzone.classList.remove("uploader__dropzone--dragging");
-    handleFiles(event.dataTransfer.files);
-  });
-}
-
 dropzone.addEventListener("click", () => {
-  fileInput.click();
+  if (fileInput) {
+    fileInput.click();
+  }
+});
+
+dropzone.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
 });
 
 applySpeed(1);
 applyPitch(1);
+reflectLockState();
 updatePitchShift();
