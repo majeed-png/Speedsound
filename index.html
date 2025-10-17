@@ -16,8 +16,8 @@
       <header class="app__header">
         <h1>Speed &amp; Pitch Studio</h1>
         <p>
-          عدّل سرعة وحِدّة الصوت لأي ملف صوتي أو فيديو بسهولة، وأغلق القفل لربط
-          القيم معًا.
+          عدّل سرعة وحِدّة الصوت لأي ملف صوتي أو فيديو بسهولة، واستخدم القفل لربط
+          القيم معًا أو التحكم بكل واحدة على حدة.
         </p>
       </header>
 
@@ -27,7 +27,7 @@
             type="file"
             id="file-input"
             accept="audio/*,video/*"
-            hidden
+            class="uploader__input"
           />
           <div class="uploader__icon">🎵</div>
           <p class="uploader__title">اسحب الملف هنا أو اضغط للاختيار</p>
@@ -38,8 +38,22 @@
       <section class="player" id="player" hidden>
         <div class="player__preview" id="preview"></div>
         <div class="player__controls">
-          <button class="player__play" id="play-btn" disabled>تشغيل</button>
+          <div class="player__buttons">
+            <button class="player__btn" id="play-btn" disabled>
+              ▶︎ تشغيل
+            </button>
+            <button class="player__btn player__btn--ghost" id="stop-btn" disabled>
+              ⏹︎ إيقاف
+            </button>
+            <button class="player__btn player__btn--success" id="export-btn" disabled>
+              ⬇️ تصدير
+            </button>
+          </div>
           <span class="player__time" id="time-label">00:00 / 00:00</span>
+        </div>
+        <div class="export" id="export-status" hidden></div>
+        <div class="export" id="export-result" hidden>
+          <a id="download-link" class="export__link" download>تحميل الملف المعدّل</a>
         </div>
         <div class="sliders">
           <div class="slider" data-slider="speed">
@@ -87,7 +101,10 @@
 
       <footer class="app__footer">
         <p>
-          ينفّذ المعالجة باستخدام <a href="https://tonejs.github.io/" target="_blank" rel="noopener">Tone.js</a>
+          ينفّذ المعالجة باستخدام
+          <a href="https://tonejs.github.io/" target="_blank" rel="noopener"
+            >Tone.js</a
+          >
           للحصول على تحكم دقيق بالحِدّة.
         </p>
       </footer>
