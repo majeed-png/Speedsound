@@ -30,6 +30,7 @@ let isLocked = true;
 let desiredSpeed = 1;
 let desiredPitch = 1;
 let lastSliderChanged = "speed";
+let dragCounter = 0;
 
 const formatMultiplier = (value) => `${Number(value).toFixed(2)}×`;
 
@@ -453,6 +454,7 @@ if (typeof window !== "undefined") {
 }
 
 const handleFiles = (files) => {
+  hideDragging();
   const file = files?.[0];
   if (!file) return;
   setupMediaElement(file);
@@ -469,7 +471,7 @@ const preventDefaults = (event) => {
   event.stopPropagation();
 };
 
-const dropTargets = [dropzone].filter(Boolean);
+const dropTargets = [dropzone, fileInput].filter(Boolean);
 
 dropTargets.forEach((target) => {
   ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
@@ -477,36 +479,61 @@ dropTargets.forEach((target) => {
   });
 });
 
-dropzone.addEventListener("dragenter", () => {
-  dropzone.classList.add("uploader__dropzone--dragging");
-});
+const showDragging = () => {
+  dropzone?.classList.add("uploader__dropzone--dragging");
+};
 
-dropzone.addEventListener("dragleave", (event) => {
-  const next = event.relatedTarget;
-  if (!next || !dropzone.contains(next)) {
-    dropzone.classList.remove("uploader__dropzone--dragging");
+const hideDragging = () => {
+  dragCounter = 0;
+  dropzone?.classList.remove("uploader__dropzone--dragging");
+};
+
+const handleDragEnter = () => {
+  dragCounter += 1;
+  showDragging();
+};
+
+const handleDragLeave = () => {
+  dragCounter = Math.max(0, dragCounter - 1);
+  if (dragCounter === 0) {
+    dropzone?.classList.remove("uploader__dropzone--dragging");
   }
-});
+};
 
-dropzone.addEventListener("drop", (event) => {
-  dropzone.classList.remove("uploader__dropzone--dragging");
-  handleFiles(event.dataTransfer.files);
-});
-
-dropzone.addEventListener("click", () => {
-  if (fileInput) {
-    fileInput.click();
+const handleDrop = (event) => {
+  hideDragging();
+  if (event.dataTransfer?.files?.length && !event._handled) {
+    event._handled = true;
+    handleFiles(event.dataTransfer.files);
   }
+};
+
+dropTargets.forEach((target) => {
+  target.addEventListener("dragenter", handleDragEnter);
+  target.addEventListener("dragleave", handleDragLeave);
+  target.addEventListener("drop", handleDrop);
 });
 
-dropzone.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    if (fileInput) {
-      fileInput.click();
+if (typeof window !== "undefined") {
+  window.addEventListener("dragend", hideDragging);
+  window.addEventListener("drop", hideDragging);
+}
+
+if (dropzone) {
+  dropzone.addEventListener("click", (event) => {
+    if (event.target === fileInput) return;
+    fileInput?.click();
+  });
+
+  dropzone.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      if (fileInput) {
+        fileInput.click();
+      }
     }
-  }
-});
+  });
+}
 
 setLinkedValue(1);
 reflectLockState();

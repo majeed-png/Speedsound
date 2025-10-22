@@ -78,21 +78,16 @@ main {
   transition: border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
   text-align: center;
   overflow: hidden;
+  position: relative;
 }
 
 .uploader__input {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  border: 0;
-  clip: rect(0 0 0 0);
-  clip-path: inset(100%);
-  overflow: hidden;
-  white-space: nowrap;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .uploader__dropzone:hover,

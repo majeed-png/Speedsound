@@ -22,23 +22,24 @@
       </header>
 
       <section class="uploader" id="uploader">
-        <input
-          type="file"
-          id="file-input"
-          class="uploader__input"
-          accept="audio/*,video/*"
-        />
-        <label
-          for="file-input"
+        <div
           class="uploader__dropzone"
           id="dropzone"
           role="button"
           tabindex="0"
+          aria-controls="file-input"
         >
+          <input
+            type="file"
+            id="file-input"
+            class="uploader__input"
+            accept="audio/*,video/*"
+            tabindex="-1"
+          />
           <div class="uploader__icon">🎵</div>
           <p class="uploader__title">اسحب الملف هنا أو اضغط للاختيار</p>
           <p class="uploader__hint">يدعم ملفات MP3، WAV، MP4، وغير ذلك</p>
-        </label>
+        </div>
       </section>
 
       <section class="player" id="player" hidden>
